@@ -1,0 +1,42 @@
+//関数定義
+@generateRandom() {
+    //秒数がシードの乱数
+    let random = Math:gen_rng(`{Date:second()}`)
+    //0～100の間で乱数を生成
+    let rnd = random(0, 100)
+    return rnd
+}
+
+@main() {
+    let num = generateRandom()
+    var text = "うにょ"
+
+    // 0からnumまでのfor
+    for (let i=0, num) {
+        //文字列連結に+を使えないので配列にしてjoinする
+        text = [text, "～"].join()
+    }
+
+    text = [text, "ん"].join()
+
+    //結果表示
+    Ui:render([
+        Ui:C:container({
+            align: "center"
+            children: [
+                Ui:C:mfm({
+                   text: text
+                })
+                Ui:C:postFormButton({
+                    text: "投稿する"
+                    primary: true
+                    form: {
+                        text: text
+                    }
+                })
+            ]
+        })
+    ])
+}
+
+main()

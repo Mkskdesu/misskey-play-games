@@ -1,0 +1,224 @@
+//初期設定のJSON
+let DEFAULT_GAMES_JSON = '{"Arknights":true,"Genshin Impact": true,"Geoguessr":true,"Mahjong":true,"Minecraft":true,"MONSTER HUNTER":true,"Overcooked":true,"PUBG: BATTLEGROUNDS":true,"Sea of Thieves": true,"Unrailed": true,"VALORANT":true}'
+
+let DEFAULT_GAMES = Json:parse(DEFAULT_GAMES_JSON)
+
+var games = {}
+
+//コンフィグの読み込み
+@loadConfig() {
+    let config = Mk:load("game_selector_table")
+    
+    if (config != null) {
+        games = Json:parse(config)
+    } else {
+        games = DEFAULT_GAMES
+    }
+}
+
+//オブジェクトからキーで削除
+@deleteKey(obj, key) {
+    var new = {}
+
+    //eachループで対象のキー以外をコピー
+    each (let i, Obj:keys(obj)){
+        if (i == key) {
+            return null
+        } else {
+            Obj:set(obj, key, Obj:get(obj, i))
+        }
+    }
+
+    return new
+}
+
+//コンフィグの保存とUI更新
+@saveConfig(){
+    Mk:save("game_selector_table", Json:stringify(games))
+    configureUi()
+}
+
+//コンフィグをキーで更新
+@modifyConfig(key, value) {
+    Obj:set(games, key, value)
+    saveConfig()
+}
+
+//コンフィグにゲームを追加
+@addGame(name) {
+    if (Obj:has(games, name)) {
+        return null
+    } else {
+        modifyConfig(name, true)
+    }
+}
+
+//コンフィグからゲームの削除
+@deleteGame(name) {
+    if (name == null) {
+        return null
+    } else {
+        games = deleteKey(games, name)
+        saveConfig()
+    }
+}
+
+//初期設定の復元
+@restoreDefault() {
+    games = DEFAULT_GAMES
+    saveConfig()
+}
+
+//コンフィグソースの直接編集
+@applyText(text) {
+    let new = Json:parse(text)
+
+    if (Core.type(new) == "error") {
+        return null
+    } else {
+        games = new
+        saveConfig()
+    }
+}
+
+//設定画面
+@configureUi() {
+    //ゲーム名一覧
+    let keys = Obj:keys(games)
+
+    //コンポーネントの配列
+    var switches = []
+    var selectOpt = []
+
+    var deleteItemKey = null
+
+    //UI要素の生成
+    each (let i, keys) {
+        let sw = Ui:C:switch({
+            default: Obj:get(games, i),
+            label: i,
+            onChange: @(enabled) { modifyConfig(i, enabled) }
+        })
+
+        let opt = {text: i, value: i}
+
+        switches.push(sw)
+        selectOpt.push(opt)
+    }
+
+    //表示
+    Ui:render([
+        //おみくじボタン
+        Ui:C:container({
+            align: "center",
+            children: [
+                Ui:C:button({
+                    onClick: @() { result() },
+                    primary: true,
+                    text: "おみくじ"
+                })
+            ]
+        }),
+        //絞り込み
+        Ui:C:folder({
+            children: [
+                Ui:C:container({
+                    children: switches
+                })
+            ],
+            title: "ゲームの絞り込み",
+            opened: true
+        }),
+        //追加
+        Ui:C:folder({
+            children: [
+                Ui:C:textInput({
+                    default: "タイトル...",
+                    onInput: @(text) { addGame(text) }
+                })
+            ],
+            title: "ゲームの追加",
+            opened: false
+        }),
+        //削除
+        Ui:C:folder({
+            children: [
+                Ui:C:select({
+                    items: selectOpt,
+                }),
+                Ui:C:button({
+                    text: "削除",
+                    onClick: @() { deleteGame(deleteItemKey) }
+                }),
+                Ui:C:button({
+                    text: "初期設定の復元",
+                    onClick: @() { restoreDefault() }
+                })
+            ],
+            title: "ゲームの削除/初期設定の復元",
+            opened: false
+        }),
+        //ソース編集
+        Ui:C:folder({
+            children: [
+                Ui:C:textarea({
+                    default: Json:stringify(games)
+                })
+                Ui:C:button({
+                    text: "適用",
+                    onClick: @(text) { applyText(text) }
+                })
+            ],
+            title: "高度な編集",
+            opened: false
+        }),
+        //おみくじボタン
+        Ui:C:container({
+            align: "center",
+            children: [
+                Ui:C:button({
+                    onClick: @() { result() },
+                    primary: true,
+                    text: "おみくじ"
+                })
+            ]
+        })
+    ])
+}
+
+@result() {
+    //キーの配列
+    let keys = Obj:keys(games)
+    //秒数がシードの乱数
+    let random = Math:gen_rng(`{Date:second()}`)
+    //0～100の間で乱数を生成
+    let rnd = random(0 keys.len)
+    //結果のキー
+    let value = keys[rnd]
+
+    //結果表示
+    Ui:render([
+        Ui:C:container({
+            align: "center",
+            children: [
+                Ui:C:mfm({ text: value })
+                Ui:C:postFormButton({
+                    text: "投稿する"
+                    primary: true
+                    form: {
+                        text: `ゲームおみくじの結果:\n{value}`
+                    }
+                })
+            ]
+        })
+  ])
+}
+
+@main() {
+    //コンフィグの読み込み
+    loadConfig()
+    //設定画面の表示
+    configureUi()
+}
+
+main()
