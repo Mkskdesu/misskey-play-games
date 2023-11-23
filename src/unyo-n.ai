@@ -1,3 +1,6 @@
+//うにょ〜ん v0.1.1
+//Copyright (c) 2023 Makisaka
+
 //関数定義
 @generateRandom() {
     //秒数がシードの乱数
@@ -27,11 +30,15 @@
                 Ui:C:mfm({
                    text: text
                 })
+                Ui:C:button({
+                    text: "やりなおす",
+                    onClick: @() { main() }
+                })
                 Ui:C:postFormButton({
                     text: "投稿する"
                     primary: true
                     form: {
-                        text: text
+                        text: `{text}{Str:lf}#うにょ〜ん`
                     }
                 })
             ]
