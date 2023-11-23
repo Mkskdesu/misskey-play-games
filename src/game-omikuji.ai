@@ -23,9 +23,9 @@ var games = {}
     //eachループで対象のキー以外をコピー
     each (let i, Obj:keys(obj)){
         if (i == key) {
-            return null
+
         } else {
-            Obj:set(obj, key, Obj:get(obj, i))
+            Obj:set(new, i, Obj:get(obj, i))
         }
     }
 
@@ -91,6 +91,8 @@ var games = {}
     var selectOpt = []
 
     var deleteItemKey = null
+    var addGameKey = null
+    var jsonSource = null
 
     //UI要素の生成
     each (let i, keys) {
@@ -132,9 +134,18 @@ var games = {}
         //追加
         Ui:C:folder({
             children: [
-                Ui:C:textInput({
-                    default: "タイトル...",
-                    onInput: @(text) { addGame(text) }
+                Ui:C:container({
+                    children: [
+                        Ui:C:textInput({
+                            default: "タイトル...",
+                            onInput: @(text) {addGameKey = text}
+                        }),
+                        Ui:C:button({
+                            primary: true,
+                            text: "追加",
+                            onClick: @() { addGame(addGameKey) }
+                        }),
+                    ]
                 })
             ],
             title: "ゲームの追加",
@@ -143,16 +154,19 @@ var games = {}
         //削除
         Ui:C:folder({
             children: [
-                Ui:C:select({
-                    items: selectOpt,
-                }),
-                Ui:C:button({
-                    text: "削除",
-                    onClick: @() { deleteGame(deleteItemKey) }
-                }),
-                Ui:C:button({
-                    text: "初期設定の復元",
-                    onClick: @() { restoreDefault() }
+                Ui:C:container({
+                    children: [
+                        Ui:C:select({
+                            items: selectOpt,
+                            onChange: @(item) { deleteItemKey = item}
+                        }),
+                        Ui:C:buttons({
+                            buttons: [
+                                {text: "削除", onClick: @() { deleteGame(deleteItemKey) }},
+                                {text: "初期設定の復元", onClick: @() { restoreDefault() }}
+                            ]
+                        })
+                    ]
                 })
             ],
             title: "ゲームの削除/初期設定の復元",
@@ -162,11 +176,13 @@ var games = {}
         Ui:C:folder({
             children: [
                 Ui:C:textarea({
-                    default: Json:stringify(games)
+                    default: Json:stringify(games),
+                    onInput: @(text) {jsonSource = text}
                 })
                 Ui:C:button({
+                    primary: true,
                     text: "適用",
-                    onClick: @(text) { applyText(text) }
+                    onClick: @(text) { applyText(jsonSource) }
                 })
             ],
             title: "高度な編集",
@@ -192,7 +208,7 @@ var games = {}
     //秒数がシードの乱数
     let random = Math:gen_rng(`{Date:second()}`)
     //0～100の間で乱数を生成
-    let rnd = random(0 keys.len)
+    let rnd = random(0, keys.len)
     //結果のキー
     let value = keys[rnd]
 
@@ -206,7 +222,7 @@ var games = {}
                     text: "投稿する"
                     primary: true
                     form: {
-                        text: `ゲームおみくじの結果:\n{value}`
+                        text: `ゲームおみくじの結果:{Str:lf}{value}`
                     }
                 })
             ]
