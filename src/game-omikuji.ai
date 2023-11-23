@@ -1,5 +1,8 @@
+//ゲームおみくじ v0.1.4
+//Copyright (c) 2023 Makisaka
+
 //初期設定のJSON
-let DEFAULT_GAMES_JSON = '{"Arknights":true,"Genshin Impact": true,"Geoguessr":true,"Mahjong":true,"Minecraft":true,"MONSTER HUNTER":true,"Overcooked":true,"PUBG: BATTLEGROUNDS":true,"Sea of Thieves": true,"Unrailed": true,"VALORANT":true}'
+let DEFAULT_GAMES_JSON = '{"Arknights":true,"Genshin Impact":true,"Geoguessr":true,"Mahjong":true,"Minecraft":true,"MONSTER HUNTER":true,"Overcooked":true,"PUBG: BATTLEGROUNDS":true,"Sea of Thieves":true,"Unrailed":true,"VALORANT":true}'
 
 let DEFAULT_GAMES = Json:parse(DEFAULT_GAMES_JSON)
 
@@ -218,11 +221,17 @@ var games = {}
             align: "center",
             children: [
                 Ui:C:mfm({ text: value })
+                Ui:C:buttons({
+                    buttons: [
+                        {text: "やりなおす", onClick: @() { result() }}
+                        {text: "設定画面に戻る", onClick: @() { configureUi() }}
+                    ]
+                })
                 Ui:C:postFormButton({
                     text: "投稿する"
                     primary: true
                     form: {
-                        text: `ゲームおみくじの結果:{Str:lf}{value}`
+                        text: `ゲームおみくじの結果: {value}{Str:lf}#ゲームおみくじ`
                     }
                 })
             ]
